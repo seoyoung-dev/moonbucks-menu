@@ -1,70 +1,87 @@
-const menuForm = document.querySelector("#espresso-menu-form");
-const menuFormInput = document.querySelector("#espresso-menu-name");
-const menuFormButton = document.querySelector("#espresso-menu-submit-button");
-const menuTitleSpan = document.querySelector(".menu-count");
+const $ = (selector) => document.querySelector(selector);
 
-let menuListUl = document.querySelector("#espresso-menu-list");
-let menuCount = 0;
+function App() {
+    const updateMenuCount = () => {
+        const menuCount = $("#espresso-menu-list").querySelectorAll(
+            "li"
+        ).length;
+        $(".menu-count").innerText = `총 ${menuCount}개`;
+    };
 
-menuForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-});
+    const addMenuName = () => {
+        if ($("#espresso-menu-name").value === "") {
+            alert("값을 입력해주세요.");
+            return;
+        }
 
-menuFormButton.addEventListener("click", addMenu);
+        const espressoMenuName = $("#espresso-menu-name").value;
+        const menuItemTemplate = (espressoMenuName) => {
+            return `
+                <li class="menu-list-item d-flex items-center py-2">
+                <span class="w-100 pl-2 menu-name">${espressoMenuName}</span>
+                <button
+                  type="button"
+                  class="bg-gray-50 text-gray-500 text-sm mr-1 menu-edit-button"
+                >
+                  수정
+                </button>
+                <button
+                  type="button"
+                  class="bg-gray-50 text-gray-500 text-sm menu-remove-button"
+                >
+                  삭제
+                </button>
+              </li>`;
+        };
+        $("#espresso-menu-list").insertAdjacentHTML(
+            "beforeend",
+            menuItemTemplate(espressoMenuName)
+        );
+        updateMenuCount();
+        $("#espresso-menu-name").value = "";
+    };
 
-function editMenu(evt) {
-    let replacingText = prompt("메뉴명을 수정하세요.");
-    let listSpan = evt.target.previousElementSibling;
-    listSpan.innerText = replacingText;
+    const updateMenuName = (e) => {
+        const $menuName = e.target.closest("li").querySelector(".menu-name");
+        const menuName = $menuName.innerText;
+        const updatedMenuName = prompt("메뉴명을 수정하세요.", menuName);
+        if (!updatedMenuName) {
+            return;
+        }
+        $menuName.innerText = updatedMenuName;
+    };
+
+    const removeMenuName = (e) => {
+        if (confirm("정말 삭제하시겠습니까?")) {
+            e.target.closest("li").remove();
+            updateMenuCount();
+        }
+    };
+
+    $("#espresso-menu-list").addEventListener("click", (e) => {
+        if (e.target.classList.contains("menu-edit-button")) {
+            updateMenuName(e);
+        }
+
+        if (e.target.classList.contains("menu-remove-button")) {
+            removeMenuName(e);
+        }
+    });
+
+    $("#espresso-menu-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+    });
+
+    $("#espresso-menu-submit-button").addEventListener("click", () => {
+        addMenuName();
+    });
+
+    $("#espresso-menu-name").addEventListener("keypress", (e) => {
+        if (e.key !== "Enter") {
+            return;
+        }
+        addMenuName();
+    });
 }
 
-function deleteMenu(evt) {
-    let seletedUl = evt.target.parentNode;
-    let checking = confirm("정말 삭제하시겠습니까?");
-    if (checking) {
-        seletedUl.remove();
-        menuCount--;
-        menuTitleSpan.innerHTML = `총 ${menuCount}개`;
-    } else {
-        return;
-    }
-}
-
-function addMenu() {
-    if (!menuFormInput.value) {
-        alert("값을 입력해주세요.");
-        return;
-    }
-
-    menuCount++;
-    let randomNumber = Date.now();
-    // list 만들기
-    let newListItem = document.createElement("li");
-    newListItem.setAttribute("class", "menu-list-item");
-    newListItem.setAttribute("id", randomNumber);
-
-    // span 만들고 내용 채우기
-    let newSpan = document.createElement("span");
-    newSpan.innerHTML = menuFormInput.value;
-    newListItem.appendChild(newSpan);
-
-    // 버튼 만들고 event listener 걸기
-    let newEditButton = document.createElement("button");
-    newEditButton.setAttribute("type", "button");
-    newEditButton.innerText = "수정";
-    newListItem.appendChild(newEditButton);
-    newEditButton.addEventListener("click", editMenu);
-
-    let newDeleteButton = document.createElement("button");
-    newDeleteButton.setAttribute("type", "button");
-    newDeleteButton.innerText = "삭제";
-    newListItem.appendChild(newDeleteButton);
-    newDeleteButton.addEventListener("click", deleteMenu);
-
-    // ul에 합체
-    menuListUl.appendChild(newListItem);
-
-    // input 비우기, 총 n개 고치기
-    menuFormInput.value = "";
-    menuTitleSpan.innerHTML = `총 ${menuCount}개`;
-}
+App();
